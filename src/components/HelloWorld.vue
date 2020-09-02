@@ -8,105 +8,76 @@
         >vue-cli documentation</a
       >.
     </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel"
-          target="_blank"
-          rel="noopener"
-          >babel</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint"
-          target="_blank"
-          rel="noopener"
-          >eslint</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router"
-          target="_blank"
-          rel="noopener"
-          >router</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex"
-          target="_blank"
-          rel="noopener"
-          >vuex</a
-        >
-      </li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li>
-        <a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a>
-      </li>
-      <li>
-        <a href="https://forum.vuejs.org" target="_blank" rel="noopener"
-          >Forum</a
-        >
-      </li>
-      <li>
-        <a href="https://chat.vuejs.org" target="_blank" rel="noopener"
-          >Community Chat</a
-        >
-      </li>
-      <li>
-        <a href="https://twitter.com/vuejs" target="_blank" rel="noopener"
-          >Twitter</a
-        >
-      </li>
-      <li>
-        <a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a>
-      </li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li>
-        <a href="https://router.vuejs.org" target="_blank" rel="noopener"
-          >vue-router</a
-        >
-      </li>
-      <li>
-        <a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-devtools#vue-devtools"
-          target="_blank"
-          rel="noopener"
-          >vue-devtools</a
-        >
-      </li>
-      <li>
-        <a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener"
-          >vue-loader</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-          rel="noopener"
-          >awesome-vue</a
-        >
-      </li>
-    </ul>
+    <img v-if="comQrCode" :src="comQrCode"><br>
+    <label>OTP</label>
+    <input v-model="userToken"><br>
+        
+    <button v-on:click="verify">check</button><br>
+    <p>{{status}}</p>
   </div>
 </template>
 
 <script>
+import qrcode from "qrcode";
+import speakeasy from "speakeasy";
+
 export default {
   name: "HelloWorld",
   props: {
     msg: String
+  },
+  data: () => {
+    return {
+      secret: null,
+      userSecret: {},
+      qrCode: null,
+      userToken: null,
+      status: null,
+    };
+  },
+
+  computed: {
+    comQrCode() {
+      return this.qrCode;
+    }
+  },
+
+  methods: {
+    tempSecret() {
+      this.userSecret.temp = this.secret.base32;
+      console.log("temp", this.userSecret.temp);      
+    },
+    generateQrCode(secret) {
+      console.log('s', secret)
+      var qr;
+      qrcode.toDataURL(secret.otpauth_url, function(err, data_url) {
+        /* this.qrCode = data_url; */
+        console.log('dataurl', data_url);
+        qr = data_url;               
+      });
+      console.log('qr', qr);
+      this.qrCode = qr;
+    },
+    verify() {
+      console.log(this.userToken);
+      var base32Secret = this.userSecret.temp
+      var verified = speakeasy.totp.verify({
+        secret: base32Secret,
+        encoding: 'base32',
+        token: this.userToken
+      });
+      verified? this.status = 'verified' : this.status = 'nope';
+      console.log(verified)
+    }
+  },
+
+  mounted() {
+    var secret = speakeasy.generateSecret();
+    this.secret = secret;
+    console.log("secret", this.secret);
+    this.tempSecret();
+    console.log(this)
+    this.generateQrCode(secret);
   }
 };
 </script>
