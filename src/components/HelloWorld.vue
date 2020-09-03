@@ -43,24 +43,22 @@ export default {
   },
 
   methods: {
-    tempSecret() {
-      this.userSecret.temp = this.secret.base32;
-      console.log("temp", this.userSecret.temp);      
-    },
-    generateQrCode(secret) {
-      console.log('s', secret)
+    
+    generateQrCode(secret) {      
       var qr;
       qrcode.toDataURL(secret.otpauth_url, function(err, data_url) {
-        /* this.qrCode = data_url; */
-        console.log('dataurl', data_url);
+        /* this.qrCode = data_url; */        
         qr = data_url;               
-      });
-      console.log('qr', qr);
+      });      
       this.qrCode = qr;
     },
-    verify() {
-      console.log(this.userToken);
-      var base32Secret = this.userSecret.temp
+    verify() {      
+      var base32Secret;
+      if(!this.secret) {
+        base32Secret = this.userSecret.temp
+      } else {
+        base32Secret = this.secret
+      }
       var verified = speakeasy.totp.verify({
         secret: base32Secret,
         encoding: 'base32',
@@ -68,16 +66,25 @@ export default {
       });
       verified? this.status = 'verified' : this.status = 'nope';
       console.log(verified)
+      if(verified) {
+        this.userSecret.secret = base32Secret
+        this.secret = base32Secret
+        if(!localStorage.getItem('secret'))
+        {
+          localStorage.setItem('secret', JSON.stringify(this.secret))
+        }
+        
+      }
     }
   },
 
   mounted() {
-    var secret = speakeasy.generateSecret();
-    this.secret = secret;
-    console.log("secret", this.secret);
-    this.tempSecret();
-    console.log(this)
-    this.generateQrCode(secret);
+    this.secret = JSON.parse(localStorage.getItem('secret'))
+    if(!this.secret) {
+      var secret = speakeasy.generateSecret();
+      this.userSecret.temp = secret.base32;
+      this.generateQrCode(secret);
+    }
   }
 };
 </script>
