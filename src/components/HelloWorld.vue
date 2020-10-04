@@ -22,7 +22,7 @@ import qrcode from "qrcode";
 import speakeasy from "speakeasy";
 
 export default {
-  name: "HelloWorld",
+  name: "OTP",
   props: {
     msg: String
   },
