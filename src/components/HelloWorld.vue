@@ -82,6 +82,7 @@ export default {
     this.secret = JSON.parse(localStorage.getItem('secret'))
     if(!this.secret) {
       var secret = speakeasy.generateSecret();
+      console.log('s: ', secret)
       this.userSecret.temp = secret.base32;
       this.generateQrCode(secret);
     }
