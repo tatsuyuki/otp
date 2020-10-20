@@ -12,7 +12,7 @@
     <label>OTP</label>
     <input v-model="userToken"><br>
         
-    <button v-on:click="verify">check</button><br>
+    <button v-on:click="verify">check secret</button><br>
     <p>{{status}}</p>
   </div>
 </template>
